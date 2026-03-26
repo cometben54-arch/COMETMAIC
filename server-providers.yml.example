@@ -1,0 +1,61 @@
+# =============================================================================
+# Server-side Provider Configuration (Optional)
+#
+# Alternative to environment variables. Copy to server-providers.yml and
+# uncomment/fill in the providers you want to use.
+# Environment variables take priority over values defined here.
+#
+# Mount into Docker:
+#   volumes:
+#     - ./server-providers.yml:/app/server-providers.yml:ro
+# =============================================================================
+
+# providers:
+#   openai:
+#     apiKey: sk-...
+#     baseUrl: https://api.openai.com/v1         # optional, uses default if omitted
+#     models: [gpt-4o, gpt-4o-mini]              # optional, restricts available models
+#     proxy: http://proxy:8080                    # optional, HTTP proxy for this provider
+#
+#   anthropic:
+#     apiKey: sk-ant-...
+#     models: [claude-sonnet-4-20250514]
+#
+#   google:
+#     apiKey: AI...
+#     models: [gemini-2.0-flash]
+#
+#   deepseek:
+#     apiKey: sk-...
+#     baseUrl: https://api.deepseek.com/v1
+#
+#   qwen:
+#     apiKey: sk-...
+#     baseUrl: https://dashscope.aliyuncs.com/compatible-mode/v1
+
+# tts:
+#   openai-tts:
+#     apiKey: sk-...
+#   azure-tts:
+#     apiKey: ...
+#     baseUrl: https://eastus.tts.speech.microsoft.com
+
+# asr:
+#   openai-whisper:
+#     apiKey: sk-...
+
+# pdf:
+#   unpdf:
+#     apiKey: ...
+
+# image:
+#   seedream:
+#     apiKey: ...
+
+# video:
+#   seedance:
+#     apiKey: ...
+
+# web-search:
+#   tavily:
+#     apiKey: tvly-...

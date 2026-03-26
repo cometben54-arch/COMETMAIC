@@ -6,10 +6,17 @@ services:
     env_file:
       - .env.local
     volumes:
-      # Optional: mount server-providers.yml for provider config
-      # - ./server-providers.yml:/app/server-providers.yml:ro
+      # Persistent storage for classroom data, generated media, and job state
       - openmaic-data:/app/data
+      # Optional: mount server-providers.yml for provider config (alternative to env vars)
+      # - ./server-providers.yml:/app/server-providers.yml:ro
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
 volumes:
   openmaic-data:
