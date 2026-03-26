@@ -152,14 +152,28 @@ export function ProviderConfigPanel({
   const models = providersConfig[provider.id]?.models || [];
   const isServerConfigured = providersConfig[provider.id]?.isServerConfigured;
 
+  // Determine provider readiness status
+  const hasClientKey = !!apiKey.trim();
+  const isReady = hasClientKey || isServerConfigured || !requiresApiKey;
+
   return (
     <div className="space-y-6 max-w-3xl">
-      {/* Server-configured notice */}
-      {isServerConfigured && (
+      {/* Provider status summary */}
+      {isServerConfigured ? (
         <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3 text-sm text-blue-700 dark:text-blue-300">
-          {t('settings.serverConfiguredNotice')}
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>{t('settings.serverConfiguredNotice')}</span>
+          </div>
         </div>
-      )}
+      ) : !isReady ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3 text-sm text-amber-700 dark:text-amber-300">
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 shrink-0" />
+            <span>{t('settings.providerNotConfigured')}</span>
+          </div>
+        </div>
+      ) : null}
 
       {/* API Key */}
       <div className="space-y-2">
@@ -173,18 +187,22 @@ export function ProviderConfigPanel({
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder={isServerConfigured ? t('settings.optionalOverride') : 'sk-...'}
+              placeholder={
+                isServerConfigured
+                  ? t('settings.optionalOverride')
+                  : !requiresApiKey
+                    ? t('settings.apiKeyNotRequired')
+                    : 'sk-...'
+              }
               value={apiKey}
               onChange={(e) => handleApiKeyChange(e.target.value)}
               onBlur={onSave}
-              disabled={!requiresApiKey && !isServerConfigured}
               className="h-8 pr-8"
             />
             <button
               type="button"
               onClick={() => setShowApiKey(!showApiKey)}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              disabled={!requiresApiKey}
             >
               {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -194,7 +212,9 @@ export function ProviderConfigPanel({
             size="sm"
             onClick={handleTestApi}
             disabled={
-              testStatus === 'testing' || (requiresApiKey && !apiKey && !isServerConfigured)
+              testStatus === 'testing' ||
+              (requiresApiKey && !apiKey && !isServerConfigured) ||
+              models.length === 0
             }
             className="gap-1.5"
           >

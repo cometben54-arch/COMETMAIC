@@ -35,6 +35,9 @@ export const settingsZhCN = {
     agentModePreset: '预设模式',
     agentModeAuto: '自动生成',
     agentModeAutoDesc: 'AI 将根据课程内容自动生成适合的课堂角色',
+    agentProviderReady: '当前使用 {provider} / {model}',
+    agentProviderNotReady: 'LLM 提供方尚未配置，智能体无法正常工作',
+    goToProviderSettings: '前往配置',
     autoAgentCount: '生成数量',
     autoAgentCountDesc: '自动生成的角色数量（包含教师）',
     atLeastOneAgent: '请至少选择1个智能体',
@@ -529,6 +532,9 @@ export const settingsZhCN = {
     serverConfiguredNotice:
       '管理员已在服务端配置了此提供方的 API Key，可直接使用。也可输入自己的 Key 覆盖。',
     optionalOverride: '可选，留空则使用服务端配置',
+    apiKeyNotRequired: '当前配置无需 API Key',
+    providerNotConfigured: '此提供方尚未配置 API Key，请输入密钥或在服务端配置后使用。',
+    providerReady: '已就绪',
     // Access code
     setupNeeded: '请先完成配置',
     modelNotConfigured: '请选择一个模型以开始使用',
@@ -621,6 +627,9 @@ export const settingsEnUS = {
     agentModePreset: 'Preset',
     agentModeAuto: 'Auto-generate',
     agentModeAutoDesc: 'AI will automatically generate appropriate roles',
+    agentProviderReady: 'Using {provider} / {model}',
+    agentProviderNotReady: 'LLM provider not configured — agents will not work',
+    goToProviderSettings: 'Configure',
     autoAgentCount: 'Agent Count',
     autoAgentCountDesc: 'Number of agents to auto-generate (including teacher)',
     atLeastOneAgent: 'Please select at least 1 agent',
@@ -1123,6 +1132,9 @@ export const settingsEnUS = {
     serverConfiguredNotice:
       'Admin has configured an API key for this provider on the server. You can use it directly or enter your own key to override.',
     optionalOverride: 'Optional — leave empty to use server config',
+    apiKeyNotRequired: 'API key not required for this config',
+    providerNotConfigured: 'This provider has no API key configured. Please enter a key or configure it on the server.',
+    providerReady: 'Ready',
     // Access code
     setupNeeded: 'Setup required',
     modelNotConfigured: 'Please select a model to get started',

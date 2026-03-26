@@ -3,7 +3,7 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertCircle, User, Users, Sparkles, Info } from 'lucide-react';
+import { AlertCircle, User, Users, Sparkles, Info, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -17,14 +17,23 @@ interface Agent {
   allowedActions: string[];
 }
 
+interface ProviderStatus {
+  providerName: string;
+  modelName: string;
+  isReady: boolean;
+  isServerConfigured: boolean;
+}
+
 interface AgentSettingsProps {
   agents: Agent[];
   selectedAgentIds: string[];
   maxTurns: string;
   agentMode: 'preset' | 'auto';
+  providerStatus?: ProviderStatus;
   onToggleAgent: (agentId: string) => void;
   onMaxTurnsChange: (value: string) => void;
   onAgentModeChange: (mode: 'preset' | 'auto') => void;
+  onOpenProviderSettings?: () => void;
 }
 
 export function AgentSettings({
@@ -32,9 +41,11 @@ export function AgentSettings({
   selectedAgentIds,
   maxTurns,
   agentMode,
+  providerStatus,
   onToggleAgent,
   onMaxTurnsChange,
   onAgentModeChange,
+  onOpenProviderSettings,
 }: AgentSettingsProps) {
   const { t } = useI18n();
 
@@ -52,6 +63,43 @@ export function AgentSettings({
 
   return (
     <div className="space-y-6 max-w-2xl">
+      {/* LLM Provider Status Banner */}
+      {providerStatus && (
+        <div
+          className={cn(
+            'rounded-lg border p-3 text-sm',
+            providerStatus.isReady
+              ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-300'
+              : 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300',
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              {providerStatus.isReady ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+              ) : (
+                <AlertCircle className="h-4 w-4 shrink-0" />
+              )}
+              <span className="truncate">
+                {providerStatus.isReady
+                  ? t('settings.agentProviderReady')
+                      .replace('{provider}', providerStatus.providerName)
+                      .replace('{model}', providerStatus.modelName)
+                  : t('settings.agentProviderNotReady')}
+              </span>
+            </div>
+            {!providerStatus.isReady && onOpenProviderSettings && (
+              <button
+                onClick={onOpenProviderSettings}
+                className="text-xs underline shrink-0 hover:no-underline"
+              >
+                {t('settings.goToProviderSettings')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
         {/* Mode Toggle */}
         <div className="space-y-2">

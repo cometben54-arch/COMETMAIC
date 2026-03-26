@@ -981,10 +981,12 @@ export const useSettingsStore = create<SettingsState>()(
                 }
               }
 
-              // LLM auto-select: when modelId is empty
+              // LLM auto-select: when modelId is empty or selection was cleared
               let autoProviderId: ProviderId | undefined;
               let autoModelId: string | undefined;
-              if (!state.modelId) {
+              const needsAutoSelect =
+                !state.modelId || clearedProviderId !== undefined || clearedModelId !== undefined;
+              if (needsAutoSelect) {
                 for (const [pid, cfg] of Object.entries(newProvidersConfig)) {
                   if (cfg.isServerConfigured) {
                     // Prefer server-restricted models, fall back to built-in list
@@ -999,6 +1001,20 @@ export const useSettingsStore = create<SettingsState>()(
                     }
                   }
                 }
+              }
+
+              // Determine final LLM provider/model selection.
+              // Priority: auto-select (from server) > cleared (unusable removed) > current
+              let finalProviderId: ProviderId | undefined;
+              let finalModelId: string | undefined;
+              if (autoProviderId) {
+                finalProviderId = autoProviderId;
+                finalModelId = autoModelId;
+              } else if (clearedProviderId !== undefined) {
+                finalProviderId = clearedProviderId;
+                finalModelId = clearedModelId ?? '';
+              } else if (clearedModelId !== undefined) {
+                finalModelId = clearedModelId;
               }
 
               return {
@@ -1030,10 +1046,8 @@ export const useSettingsStore = create<SettingsState>()(
                 ...(autoVideoEnabled !== undefined && {
                   videoGenerationEnabled: autoVideoEnabled,
                 }),
-                ...(autoProviderId && { providerId: autoProviderId }),
-                ...(autoModelId && { modelId: autoModelId }),
-                ...(clearedProviderId !== undefined && { providerId: clearedProviderId }),
-                ...(clearedModelId !== undefined && { modelId: clearedModelId }),
+                ...(finalProviderId !== undefined && { providerId: finalProviderId }),
+                ...(finalModelId !== undefined && { modelId: finalModelId }),
               };
             });
           } catch (e) {
