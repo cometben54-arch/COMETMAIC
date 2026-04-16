@@ -18,9 +18,9 @@ const inter = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'OpenMAIC',
+  title: '质心定制课程系统',
   description:
-    'The open-source AI interactive classroom. Upload a PDF to instantly generate an immersive, multi-agent learning experience.',
+    '质心定制课程系统 - AI驱动的智能互动课堂，上传PDF即可生成沉浸式多智能体学习体验。',
 };
 
 export default function RootLayout({

@@ -447,10 +447,8 @@ function HomePage() {
           classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-[10vh]',
         )}
       >
-        {/* ── Logo ── */}
-        <motion.img
-          src="/logo-horizontal.png"
-          alt="OpenMAIC"
+        {/* ── Title ── */}
+        <motion.h1
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{
@@ -459,8 +457,10 @@ function HomePage() {
             stiffness: 200,
             damping: 20,
           }}
-          className="h-12 md:h-16 mb-2 -ml-2 md:-ml-3"
-        />
+          className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-violet-600 to-blue-500 bg-clip-text text-transparent"
+        >
+          质心定制课程系统
+        </motion.h1>
 
         {/* ── Slogan ── */}
         <motion.p
@@ -664,7 +664,7 @@ function HomePage() {
 
       {/* Footer — flows with content, at the very end */}
       <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        OpenMAIC Open Source Project
+        质心定制课程系统
       </div>
     </div>
   );
