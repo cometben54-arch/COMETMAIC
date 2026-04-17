@@ -38,6 +38,7 @@ import { ActionEngine } from '@/lib/action/engine';
 import { useCanvasStore } from '@/lib/store/canvas';
 import { useSettingsStore } from '@/lib/store/settings';
 import { createLogger } from '@/lib/logger';
+import { processTextForTTS } from '@/lib/utils/latex-to-speech';
 
 const log = createLogger('PlaybackEngine');
 
@@ -615,7 +616,11 @@ export class PlaybackEngine {
    * Uses cancel+re-speak for pause/resume (Firefox compatibility).
    */
   private playBrowserTTS(speechAction: SpeechAction): void {
-    this.browserTTSChunks = this.splitIntoChunks(speechAction.text);
+    const lang = useSettingsStore.getState().providersConfig
+      ? (localStorage.getItem('generationLanguage') as 'zh-CN' | 'en-US' | null) ?? 'zh-CN'
+      : 'zh-CN';
+    const spokenText = processTextForTTS(speechAction.text, lang);
+    this.browserTTSChunks = this.splitIntoChunks(spokenText);
     this.browserTTSChunkIndex = 0;
     this.browserTTSPausedChunks = [];
     this.browserTTSActive = true;

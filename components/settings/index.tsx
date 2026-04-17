@@ -26,6 +26,7 @@ import {
   Search,
   Volume2,
   Mic,
+  Database,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
@@ -55,6 +56,7 @@ import { WebSearchSettings } from './web-search-settings';
 import { WEB_SEARCH_PROVIDERS } from '@/lib/web-search/constants';
 import type { WebSearchProviderId } from '@/lib/web-search/types';
 import { GeneralSettings } from './general-settings';
+import { RAGSettings } from './rag-settings';
 import { ModelEditDialog } from './model-edit-dialog';
 import { AddProviderDialog, type NewProviderData } from './add-provider-dialog';
 import type { SettingsSection, EditingModel } from '@/lib/types/settings';
@@ -122,6 +124,7 @@ function getTTSProviderName(providerId: TTSProviderId, t: (key: string) => strin
     'glm-tts': t('settings.providerGLMTTS'),
     'qwen-tts': t('settings.providerQwenTTS'),
     'elevenlabs-tts': t('settings.providerElevenLabsTTS'),
+    'minimax-tts': t('settings.providerMinimaxTTS'),
     'browser-native-tts': t('settings.providerBrowserNativeTTS'),
   };
   return names[providerId];
@@ -651,6 +654,13 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
           </>
         );
       }
+      case 'rag':
+        return (
+          <>
+            <Database className="h-6 w-6 text-primary" />
+            <h2 className="text-lg font-semibold">{t('settings.ragSettings')}</h2>
+          </>
+        );
       default:
         return null;
     }
@@ -753,6 +763,19 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
             >
               <Search className="h-4 w-4 shrink-0" />
               <span className="truncate">{t('settings.webSearchSettings')}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveSection('rag')}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors text-left min-w-0',
+                activeSection === 'rag'
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'hover:bg-muted',
+              )}
+            >
+              <Database className="h-4 w-4 shrink-0" />
+              <span className="truncate">{t('settings.ragSettings')}</span>
             </button>
 
             <button
@@ -988,6 +1011,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
               )}
               {activeSection === 'tts' && <TTSSettings selectedProviderId={ttsProviderId} />}
               {activeSection === 'asr' && <ASRSettings selectedProviderId={asrProviderId} />}
+              {activeSection === 'rag' && <RAGSettings />}
             </div>
 
             {/* Footer */}

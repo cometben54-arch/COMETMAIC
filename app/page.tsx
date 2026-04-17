@@ -58,6 +58,8 @@ interface FormState {
   requirement: string;
   language: 'zh-CN' | 'en-US';
   webSearch: boolean;
+  subject: string;
+  grade: string;
 }
 
 const initialFormState: FormState = {
@@ -65,7 +67,20 @@ const initialFormState: FormState = {
   requirement: '',
   language: 'zh-CN',
   webSearch: false,
+  subject: '',
+  grade: '',
 };
+
+const SUBJECT_KEYS = [
+  'math', 'chinese', 'english', 'physics', 'chemistry', 'biology',
+  'history', 'geography', 'politics', 'science', 'music', 'art', 'pe', 'it',
+] as const;
+
+const GRADE_KEYS = [
+  'g1', 'g2', 'g3', 'g4', 'g5', 'g6',
+  'g7', 'g8', 'g9', 'g10', 'g11', 'g12',
+  'college', 'grad',
+] as const;
 
 function HomePage() {
   const { t, locale, setLocale } = useI18n();
@@ -124,6 +139,51 @@ function HomePage() {
       setForm((prev) => ({ ...prev, requirement: cachedRequirement }));
     }
   }
+
+  // Keywords state
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [loadingKeywords, setLoadingKeywords] = useState(false);
+
+  // Fetch keywords when subject + grade are both selected
+  useEffect(() => {
+    if (!form.subject || !form.grade) {
+      setKeywords([]);
+      setSelectedKeywords([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingKeywords(true);
+    fetch('/api/generate-keywords', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: form.subject, grade: form.grade, language: form.language }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.data?.keywords) {
+          setKeywords(data.data.keywords);
+          setSelectedKeywords([]);
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingKeywords(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [form.subject, form.grade, form.language]);
+
+  // Sync selected keywords into requirement text
+  const toggleKeyword = (kw: string) => {
+    setSelectedKeywords((prev) => {
+      const next = prev.includes(kw) ? prev.filter((k) => k !== kw) : [...prev, kw];
+      return next;
+    });
+  };
 
   const needsSetup = storeHydrated && !currentModelId;
   const [languageOpen, setLanguageOpen] = useState(false);
@@ -242,7 +302,20 @@ function HomePage() {
       return;
     }
 
-    if (!form.requirement.trim()) {
+    // Build full requirement text from subject/grade/keywords + manual input
+    let fullRequirement = form.requirement;
+    if (form.subject || form.grade || selectedKeywords.length > 0) {
+      const parts: string[] = [];
+      if (form.subject) parts.push(`学科/Subject: ${form.subject}`);
+      if (form.grade) parts.push(`年级/Grade: ${form.grade}`);
+      if (selectedKeywords.length > 0) parts.push(`关键词/Keywords: ${selectedKeywords.join(', ')}`);
+      const prefix = parts.join(' | ');
+      fullRequirement = fullRequirement.trim()
+        ? `[${prefix}]\n${fullRequirement}`
+        : `[${prefix}]`;
+    }
+
+    if (!fullRequirement.trim()) {
       setError(t('upload.requirementRequired'));
       return;
     }
@@ -252,7 +325,7 @@ function HomePage() {
     try {
       const userProfile = useUserProfileStore.getState();
       const requirements: UserRequirements = {
-        requirement: form.requirement,
+        requirement: fullRequirement,
         language: form.language,
         userNickname: userProfile.nickname || undefined,
         userBio: userProfile.bio || undefined,
@@ -313,7 +386,7 @@ function HomePage() {
     return date.toLocaleDateString();
   };
 
-  const canGenerate = !!form.requirement.trim();
+  const canGenerate = !!form.requirement.trim() || (!!form.subject && !!form.grade) || selectedKeywords.length > 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -521,6 +594,96 @@ function HomePage() {
         >
           {t('home.slogan')}
         </motion.p>
+
+        {/* ── Subject & Grade Selectors ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="w-full mb-4"
+        >
+          <div className="flex gap-3">
+            {/* Subject */}
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{t('home.selectSubject')}</label>
+              <div className="flex flex-wrap gap-1.5">
+                {SUBJECT_KEYS.map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => updateForm('subject', form.subject === t(`home.subjects.${key}`) ? '' : t(`home.subjects.${key}`))}
+                    className={cn(
+                      'px-2.5 py-1 text-xs rounded-full border transition-all',
+                      form.subject === t(`home.subjects.${key}`)
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-white/60 dark:bg-slate-800/60 border-border/60 hover:border-primary/40 hover:bg-primary/5 text-muted-foreground',
+                    )}
+                  >
+                    {t(`home.subjects.${key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{t('home.selectGrade')}</label>
+            <div className="flex flex-wrap gap-1.5">
+              {GRADE_KEYS.map((key) => (
+                <button
+                  key={key}
+                  onClick={() => updateForm('grade', form.grade === t(`home.grades.${key}`) ? '' : t(`home.grades.${key}`))}
+                  className={cn(
+                    'px-2.5 py-1 text-xs rounded-full border transition-all',
+                    form.grade === t(`home.grades.${key}`)
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-white/60 dark:bg-slate-800/60 border-border/60 hover:border-primary/40 hover:bg-primary/5 text-muted-foreground',
+                  )}
+                >
+                  {t(`home.grades.${key}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Suggested Keywords ── */}
+        <AnimatePresence>
+          {(keywords.length > 0 || loadingKeywords) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="w-full mb-4"
+            >
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                {t('home.suggestedKeywords')}
+              </label>
+              {loadingKeywords ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground/60 py-2">
+                  <div className="h-3 w-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  {t('home.loadingKeywords')}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {keywords.map((kw) => (
+                    <button
+                      key={kw}
+                      onClick={() => toggleKeyword(kw)}
+                      className={cn(
+                        'px-3 py-1.5 text-xs rounded-full border transition-all',
+                        selectedKeywords.includes(kw)
+                          ? 'bg-violet-500 text-white border-violet-500 shadow-sm'
+                          : 'bg-white/60 dark:bg-slate-800/60 border-border/60 hover:border-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 text-foreground',
+                      )}
+                    >
+                      {selectedKeywords.includes(kw) && <span className="mr-1">&#10003;</span>}
+                      {kw}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Unified input area ── */}
         <motion.div

@@ -134,6 +134,9 @@ export async function generateTTS(
     case 'elevenlabs-tts':
       return await generateElevenLabsTTS(config, text);
 
+    case 'minimax-tts':
+      return await generateMinimaxTTS(config, text);
+
     case 'browser-native-tts':
       throw new Error(
         'Browser Native TTS must be handled client-side using Web Speech API. This provider cannot be used on the server.',
@@ -370,6 +373,63 @@ async function generateElevenLabsTTS(
     audio: new Uint8Array(arrayBuffer),
     format: requestedFormat,
   };
+}
+
+/**
+ * MiniMax TTS implementation
+ * API: https://platform.minimaxi.com/document/T2A%20V2?key=66719005a427f0c8a5701643
+ */
+async function generateMinimaxTTS(
+  config: TTSModelConfig,
+  text: string,
+): Promise<TTSGenerationResult> {
+  const baseUrl = config.baseUrl || TTS_PROVIDERS['minimax-tts'].defaultBaseUrl;
+
+  const response = await fetch(`${baseUrl}/v1/t2a_v2`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'speech-02-hd',
+      text,
+      stream: false,
+      voice_setting: {
+        voice_id: config.voice || 'male-qn-qingse',
+        speed: config.speed || 1.0,
+        vol: 1.0,
+        pitch: 0,
+      },
+      audio_setting: {
+        audio_sample_rate: 32000,
+        bitrate: 128000,
+        format: 'mp3',
+        channel: 1,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => response.statusText);
+    throw new Error(`MiniMax TTS API error: ${errorText}`);
+  }
+
+  const data = await response.json();
+
+  if (data.base_resp?.status_code !== 0) {
+    throw new Error(`MiniMax TTS error: ${data.base_resp?.status_msg || 'Unknown error'}`);
+  }
+
+  const hexAudio = data.data?.audio;
+  if (!hexAudio) {
+    throw new Error('MiniMax TTS returned no audio data');
+  }
+
+  // MiniMax returns hex-encoded audio
+  const audioBuffer = Buffer.from(hexAudio, 'hex');
+
+  return { audio: audioBuffer, format: 'mp3' };
 }
 
 /**

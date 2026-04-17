@@ -9,7 +9,8 @@ export type SettingsSection =
   | 'pdf'
   | 'image'
   | 'video'
-  | 'web-search';
+  | 'web-search'
+  | 'rag';
 
 /**
  * Unified provider configuration stored in JSON format

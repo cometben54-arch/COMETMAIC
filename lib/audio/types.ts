@@ -83,6 +83,7 @@ export type TTSProviderId =
   | 'glm-tts'
   | 'qwen-tts'
   | 'elevenlabs-tts'
+  | 'minimax-tts'
   | 'browser-native-tts';
 // Add new TTS providers below (uncomment and modify):
 // | 'fish-audio-tts'
